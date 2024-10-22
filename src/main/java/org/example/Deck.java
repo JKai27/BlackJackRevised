@@ -2,12 +2,13 @@ package org.example;
 
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @Getter
-public class Deck {
+public class Deck implements Serializable {
     private final List<Card> cards;
     private static final int NUMBER_OF_CARDS_IN_A_DECK = 52;
     private final int allowedNumberOfDecksInTheGame;

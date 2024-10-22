@@ -1,9 +1,12 @@
 package org.example;
 
+import lombok.Getter;
+
+import java.io.*;
 import java.util.*;
 
-
-public class GameLogic {
+@Getter
+public class GameLogic implements Serializable {
     private final Deck deck;
     private List<Player> players;
     private final Dealer dealer;
@@ -137,9 +140,24 @@ public class GameLogic {
 */
 
     public void startGame() {
+        int currentPlayerCount = players.size(); // Get the current number of players
+        if (currentPlayerCount > 7) {
+            System.out.println(RED + "Error: The total number of players cannot exceed 7. Current players: " + currentPlayerCount + RESET);
+            return; // Prevent starting the game if player count exceeds 7
+        }
+
         System.out.println(CYAN + "\nWelcome to " + dealer.getDealerName() + "'s Blackjack!" + RESET);
 
-        invitePlayers();
+        // Calculate remaining spots
+        int remainingSpots = 7 - currentPlayerCount;
+
+        // Call invitePlayers method only if there are remaining spots
+        if (remainingSpots > 0) {
+            System.out.println("You can add up to " + remainingSpots + " more player(s).");
+            invitePlayers(remainingSpots); // Call the updated invitePlayers method
+        } else {
+            System.out.println("No additional players can be added. Starting the game...");
+        }
 
         List<Player> playersToContinue;
         do {
@@ -151,6 +169,7 @@ public class GameLogic {
                 player.resetBet();
                 player.resetInsuranceBet();
                 player.setDoubledDown(false);
+                this.playersWithBlackjack.clear();
 
                 if (player.getAvailableMoney() < MIN_BET_AMOUNT) {
                     System.out.println(RED + player.getName() + ", you have insufficient funds." + RESET);
@@ -723,20 +742,23 @@ public class GameLogic {
     }
 
 
-    private void invitePlayers() {
+    public void invitePlayers(int remainingSpots) {
         Scanner scanner = new Scanner(System.in);
         int userInput = 0;
 
+        // Set the maximum number of players to invite based on remaining spots
+        int maxPlayersToInvite = Math.min(remainingSpots, 7 - players.size());
+
         while (true) {
-            System.out.println("How many people are playing? (min. 1 and max. 7)");
+            System.out.println("How many people are playing? (min. 1 and max. " + maxPlayersToInvite +").");
             String input = scanner.nextLine(); // Read input as a string
 
             try {
                 userInput = Integer.parseInt(input); // Try to parse the input to an integer
-                if (userInput >= 1 && userInput <= 7) {
+                if (userInput >= 1 && userInput <= maxPlayersToInvite) {
                     break; // Valid input, exit the loop
                 } else {
-                    System.out.println(RED + "Please enter a valid number between 1 and 7." + RESET);
+                    System.out.println(RED + "Please enter a valid number between 1 and " + maxPlayersToInvite + RESET);
                 }
             } catch (NumberFormatException e) {
                 System.out.println(RED + "Invalid input! Please enter a number." + RESET);
@@ -843,6 +865,44 @@ public class GameLogic {
             }
         }
     }
+
+    // Method to save game state.
+    public void saveGame(String fileName) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            out.writeObject(this);
+            System.out.println(GREEN + "Game saved successfully!" + RESET);
+        } catch (IOException e) {
+            System.out.println(RED + "Error while saving game to " + e.getMessage() + RESET);
+        }
+    }
+
+    // Load the game from a file
+    public static GameLogic loadGame(String fileName) {
+        File file = new File(fileName);
+        if (!file.exists()) {
+            System.out.println(RED + "Error: Save file not found" + RESET);
+            return null;
+        }
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(fileName))) {
+            GameLogic loadedGame = (GameLogic) in.readObject();
+
+            // check if loaded game has more than 7 players
+            if (loadedGame.getPlayers().size() > 7) {
+                System.out.println(RED + "Error:Loaded game has more than 7 players." + RESET);
+                return null; // preventing the game from loading
+            }
+            return loadedGame; // return loaded game if player count is valid
+
+        } catch (IOException | ClassNotFoundException e) {
+            if (e instanceof InvalidClassException) {
+                System.out.println(RED + "Error: The save file is incompatible with the current version of the game. Please start a new game." + RESET);
+            } else {
+                System.out.println("Error loading game: " + e.getMessage());
+            }
+            return null;
+        }
+    }
+
 }
 
 

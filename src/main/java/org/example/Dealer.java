@@ -3,9 +3,11 @@ package org.example;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 
-public class Dealer {
+public class Dealer implements Serializable {
     private final String dealerName;
     @Setter
     private Hand dealerHand;
