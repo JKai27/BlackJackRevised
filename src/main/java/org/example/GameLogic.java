@@ -5,7 +5,7 @@ import java.util.*;
 
 public class GameLogic {
     private final Deck deck;
-    private List<Player> players;
+    private final List<Player> players;
     private final Dealer dealer;
     private final double MAX_BET_AMOUNT = 500;
     private final double MIN_BET_AMOUNT = 10;
@@ -23,118 +23,6 @@ public class GameLogic {
     public static final String YELLOW = "\u001B[33m";
     public static final String BLUE = "\u001B[34m";
     public static final String CYAN = "\u001B[36m";
-
-
-/*
-
-    public void startGame() {
-        System.out.println("\nWelcome to " + dealer.getDealerName() + "'s Blackjack!");
-
-        invitePlayers();
-
-        List<Player> playersToContinue;
-        do {
-            // Reset hands and bets for each player before a new round starts
-            for (Player player : players) {
-                deck.renewDeckIfNeeded();
-
-                player.getPlayerHands().clear();
-                player.resetBet();
-                player.resetInsuranceBet();
-                player.setDoubledDown(false);
-
-                if (player.getAvailableMoney() < MIN_BET_AMOUNT) {
-                    System.out.println(player.getName() + ", you have insufficient funds.");
-                    // Logic to handle insufficient funds
-                    if (!handleInsufficientFunds(player)) {
-                        players.remove(player); // Remove player after they decline to top up
-                    }
-                }
-            }
-
-            // Proceed if there are players left
-            if (players.isEmpty()) {
-                System.out.println("No players left in the game. Exiting...");
-                break;
-            }
-
-            dealer.getDealerHand().getCardsInHand().clear(); // Reset dealer's hand
-
-            promptPlayersForBets(); // Set bets
-            dealInitialCards(); // Deal cards
-            showInitialHands(); // Show hands
-
-            // Step 1: Check for Blackjack immediately after initial hands are dealt
-            playersToContinue = whoHasBlackJack(); // Check for blackjack winners
-
-            if (playersToContinue.isEmpty()) {
-                break; // End round if everyone has blackjack
-            }
-
-            // Step 2: If no Blackjack, continue the game flow with splits and insurance
-            Scanner getInputForSplit = new Scanner(System.in);
-
-            //Step 3: Offer insurance if the dealer's face-up card is an Ace, but exclude players with blackjack
-            List<Player> playersEligibleForInsurance = players.stream()
-                    .filter(player -> !player.hasPlayerBlackjack())
-                    .toList();
-            if (dealer.isFaceUpCardAce()) {
-                offerInsurance(playersEligibleForInsurance); // Players decide on insurance
-                dealer.revealHiddenCard(); // Reveal hidden card only for insurance purposes
-
-                boolean roundShouldEnd = handleInsurance(); // Handle insurance payouts if applicable
-                if (roundShouldEnd) {
-                    System.out.println("The round ends as the dealer has Blackjack.");
-                    continue; // Move to next round
-                }
-            }
-
-
-            // Step 4: check if split possible
-            for (Player player : playersToContinue) {
-                // Check if the first hand can be split
-                if (player.getPlayerHands().get(0).canSplit()) {
-                    while (true) {
-                        System.out.println("\n" + player.getName() + ", do you want to split your hand? (y/n)");
-                        String userInput = getInputForSplit.nextLine().trim().toLowerCase();
-
-                        // Handle 'y' (yes) case
-                        if (userInput.equals("y")) {
-                            split(player); // Ensure this method correctly splits the hands
-                            System.out.println(player.getName() + " has split the hand.");
-                            break; // Exit the loop after splitting
-                        }
-                        // Handle 'n' (no) case
-                        else if (userInput.equals("n")) {
-                            System.out.println(player.getName() + " chose not to split the hand.");
-                            break; // Exit the loop and proceed
-                        }
-                        // Handle invalid input
-                        else {
-                            System.out.println("Invalid input! Please enter 'y' for YES or 'n' for NO.");
-                        }
-                    }
-                }
-            }
-
-
-            // Step 5: Continue players' turn if no Blackjack was found
-            for (Player player : playersToContinue) {
-                playersTurn(player); // Player's turn
-            }
-
-            dealer.dealerPlays(deck); // Dealer's turn without revealing the hidden card
-
-            // Compare each player's hand with the dealer's hand after dealer finishes playing
-            for (Player player : playersToContinue) {
-                for (Hand hand : player.getPlayerHands()) {
-                    compareWithDealer(player, hand);
-                }
-            }
-
-        } while (!playersToContinue.isEmpty() && askToContinue());
-    }
-*/
 
     public void startGame() {
         System.out.println(CYAN + "\nWelcome to " + dealer.getDealerName() + "'s Blackjack!" + RESET);
@@ -336,30 +224,6 @@ public class GameLogic {
         return false; // Return false to indicate that the game should continue
     }
 
-
-/*
-    private void handleInsurance() {
-        boolean dealerHasBlackJack = dealer.hasDealerBlackjack();
-
-        for (Player player : players) {
-            System.out.println(player.getName() + "'s previous balance: " + player.getAvailableMoney());
-
-            if (dealerHasBlackJack) {
-                if (player.hasTakenInsurance()) {
-                    System.out.println(player.getName() + " wins insurance, payout will be handled accordingly at the end of the round.");
-                } else {
-                    System.out.println(player.getName() + " loses the bet due to dealer's blackjack.");
-                }
-                player.setContinuePlaying(false);  // Player cannot continue if the dealer has blackjack
-            } else {
-                System.out.println("Dealer does not have blackjack, " + player.getName() + " continues playing.");
-                player.setContinuePlaying(true);   // Player continues if no dealer blackjack
-            }
-        }
-    }
-
- */
-
     public void offerInsurance(List<Player> players) {
         for (Player player : players) {
             if (player.getAvailableMoney() >= player.getCurrentBet() / 2) {
@@ -412,62 +276,6 @@ public class GameLogic {
     }
 
 
-    /* private void playersTurn(Player player) {
-        Scanner scanner = new Scanner(System.in);
-
-        // Iterate over each hand of the player (in case of splits)
-        for (Hand hand : player.getPlayerHands()) {
-            boolean turnActive = true;
-
-            while (turnActive) {
-                int playerHandValue = hand.calculateValue(); // Calculate hand value at the start of each loop
-                System.out.println(player.getName() + "'s hand: " + hand.getCardsInHand());
-                System.out.println("Total value of hand: " + playerHandValue);
-
-                // Check if Double Down is possible
-                if (player.isDoubleDownPossible()) {
-                    System.out.print("\n" + player.getName() + ", Do you want to double down? (y/n): ");
-                    String choice = scanner.nextLine().trim().toLowerCase();
-                    if (choice.equals("y")) {
-                        player.setDoubledDown(true);
-                        handleDoubleDown(player);
-                        turnActive = false; // Turn ends after double down
-                        break; // Move on to the next hand (if split)
-                    } else if (choice.equals("n")) {
-                        System.out.println("Continuing with your regular turn.");
-                    } else {
-                        System.out.println("Invalid input. Please enter 'y' or 'n'.");
-                        continue; // Ask again if input was invalid
-                    }
-                }
-
-                // Ask for other actions (Hit, Stay, etc.)
-                System.out.println("\n" + player.getName() + ", Do you want to Hit or Stay? (h/s): ");
-                String action = scanner.nextLine().trim().toLowerCase();
-                if (action.equals("h")) {
-                    hand.addCard(deck.drawCard());
-                    System.out.println(player.getName() + ", You drew " + hand.getCardsInHand().get(hand.getCardsInHand().size() - 1));
-
-                    playerHandValue = hand.calculateValue(); // Update hand value after hitting
-
-                    // If hand reaches 21, stop asking for further actions
-                    if (playerHandValue == 21) {
-                        System.out.println(player.getName() + " has 21! Turn ends.");
-                        turnActive = false; // End turn immediately if hand value is 21
-                    } else if (hand.isBust()) {
-                        System.out.println(player.getName() + " busts!");
-                        turnActive = false; // End turn if the player busts
-                    }
-
-                } else if (action.equals("s")) {
-                    System.out.println(player.getName() + " stays.");
-                    turnActive = false; // End turn if the player chooses to stay
-                } else {
-                    System.out.println("Invalid input. Please enter 'h' for Hit or 's' for Stay.");
-                }
-            }
-        }
-    } */
     private void playersTurn(Player player) {
         Scanner scanner = new Scanner(System.in);
 
@@ -538,27 +346,6 @@ public class GameLogic {
         double previousBalance = player.getAvailableMoney();
         double doubledBet = player.getCurrentBet() * 2;
         System.out.println();
-        /*
-        // Handle insurance payouts if the dealer has blackjack
-        if (dealer.hasDealerBlackjack()) {
-            if (player.hasTakenInsurance()) {
-                double insurancePayout = player.getInsuranceBet() * 2; // 2:1 payout for insurance
-                player.setAvailableMoney(player.getAvailableMoney() + insurancePayout);
-                System.out.println(player.getName() + " wins " + insurancePayout + " from insurance.");
-            } else {
-                System.out.println(player.getName() + " loses the original bet due to dealer blackjack.");
-                player.lostBet(); // Deduct regular bet from balance
-            }
-            return;  // End player's turn since dealer has blackjack
-        }
-
-        // Deduct insurance bet if player took insurance but dealer doesn't have blackjack
-        if (player.hasTakenInsurance()) {
-            System.out.println(player.getName() + " loses insurance bet of " + player.getInsuranceBet() + ".");
-            player.setAvailableMoney(player.getAvailableMoney() - player.getInsuranceBet());
-        }
-
-         */   // handle insurance remove the code snippet later
 
         // Skip dealer comparison if the player has already busted
         if (playerHandValue > 21) {
@@ -632,7 +419,7 @@ public class GameLogic {
         }
     }
 
-    private List<Player> playersWithBlackjack = new ArrayList<>();
+    private final List<Player> playersWithBlackjack = new ArrayList<>();
 
     public List<Player> whoHasBlackJack() {
         List<Player> playersWithoutBlackjack = new ArrayList<>();
