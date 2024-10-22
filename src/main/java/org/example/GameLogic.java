@@ -8,7 +8,7 @@ import java.util.*;
 @Getter
 public class GameLogic implements Serializable {
     private final Deck deck;
-    private List<Player> players;
+    private final List<Player> players;
     private final Dealer dealer;
     private final double MAX_BET_AMOUNT = 500;
     private final double MIN_BET_AMOUNT = 10;
@@ -28,7 +28,7 @@ public class GameLogic implements Serializable {
     public static final String CYAN = "\u001B[36m";
 
 
-    public void startGame() {
+    public void startGame(boolean isGameLoaded) {
         int currentPlayerCount = players.size(); // Get the current number of players
         if (currentPlayerCount > 7) {
             System.out.println(RED + "Error: The total number of players cannot exceed 7. Current players: " + currentPlayerCount + RESET);
@@ -37,15 +37,18 @@ public class GameLogic implements Serializable {
 
         System.out.println(CYAN + "\nWelcome to " + dealer.getDealerName() + "'s Blackjack!" + RESET);
 
-        // Calculate remaining spots
-        int remainingSpots = 7 - currentPlayerCount;
+        // Only invite players if the game wasn't loaded
+        if (!isGameLoaded) {
+            // Calculate remaining spots
+            int remainingSpots = 7 - currentPlayerCount;
 
-        // Call invitePlayers method only if there are remaining spots
-        if (remainingSpots > 0) {
-            System.out.println("You can add up to " + remainingSpots + " more player(s).");
-            invitePlayers(remainingSpots); // Call the updated invitePlayers method
-        } else {
-            System.out.println("No additional players can be added. Starting the game...");
+            // Call invitePlayers method only if there are remaining spots
+            if (remainingSpots > 0) {
+                System.out.println("You can add up to " + remainingSpots + " more player(s).");
+                invitePlayers(remainingSpots); // Call the invitePlayers method
+            } else {
+                System.out.println("No additional players can be added. Starting the game...");
+            }
         }
 
         List<Player> playersToContinue;
@@ -243,7 +246,6 @@ public class GameLogic implements Serializable {
 
         return false; // Return false to indicate that the game should continue
     }
-
 
 
     public void offerInsurance(List<Player> players) {
@@ -462,7 +464,7 @@ public class GameLogic implements Serializable {
         }
     }
 
-    private List<Player> playersWithBlackjack = new ArrayList<>();
+    private final List<Player> playersWithBlackjack = new ArrayList<>();
 
     public List<Player> whoHasBlackJack() {
         List<Player> playersWithoutBlackjack = new ArrayList<>();
@@ -561,7 +563,7 @@ public class GameLogic implements Serializable {
         int maxPlayersToInvite = Math.min(remainingSpots, 7 - players.size());
 
         while (true) {
-            System.out.println("How many people are playing? (min. 1 and max. " + maxPlayersToInvite +").");
+            System.out.println("How many people are playing? (min. 1 and max. " + maxPlayersToInvite + ").");
             String input = scanner.nextLine(); // Read input as a string
 
             try {
@@ -708,7 +710,7 @@ public class GameLogic implements Serializable {
             if (e instanceof InvalidClassException) {
                 System.out.println(RED + "Error: The save file is incompatible with the current version of the game. Please start a new game." + RESET);
             } else {
-                System.out.println("Error loading game: " + e.getMessage());
+                System.out.println(RED + "Error loading game: " + e.getMessage() + RESET);
             }
             return null;
         }

@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.AnsiColour;
+
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -8,44 +10,48 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         GameLogic gameLogic = null; // Initialize as null
         boolean exit = false;
+        boolean isGameLoaded = false; // Flag to track if the game was loaded
 
         while (!exit) {
-            System.out.println("1. Start New Game");
+            System.out.println(AnsiColour.GREEN.getCode() + "1. Start New Game" + AnsiColour.RESET.getCode());
             System.out.println("2. Load Game");
-            System.out.println("3. Save Game");
-            System.out.println("4. Exit");
+            System.out.println(AnsiColour.BRIGHT_YELLOW.getCode() + "3. Save Game" + AnsiColour.RESET.getCode());
+            System.out.println(AnsiColour.RED.getCode() + "4. Exit" + AnsiColour.RESET.getCode());
 
             int choice = getValidChoice(scanner);
 
             switch (choice) {
                 case 1: // Start a New Game
                     gameLogic = new GameLogic();
-                    gameLogic.startGame();
+                    isGameLoaded = false; // Reset flag when starting a new game
+                    gameLogic.startGame(isGameLoaded);
                     break;
                 case 2: // Load Game
                     gameLogic = GameLogic.loadGame("blackjack_save.dat");
                     if (gameLogic != null) {
-                        System.out.println("Game loaded successfully.");
+                        System.out.println(AnsiColour.GREEN.getCode() + "Game loaded successfully." + AnsiColour.RESET.getCode());
 
-                        // check the number of players in the loaded game
+                        // Check the number of players in the loaded game
                         int loadedPlayerCount = gameLogic.getPlayers().size();
-                        System.out.println("Loaded game has " + loadedPlayerCount + " players.");
+                        System.out.println(AnsiColour.BLUE.getCode() + "Loaded game has " + loadedPlayerCount + " players." + AnsiColour.RESET.getCode());
 
                         // Calculate remaining spots
                         int remainingSpots = 7 - loadedPlayerCount;
                         if (remainingSpots > 0) {
-                            System.out.println("You can add up to " + remainingSpots + " more player(s).");
-
-                            // Call the modified invitePlayers method with remaining spots
+                            System.out.println(AnsiColour.YELLOW.getCode() + "You can add up to " + remainingSpots + " more player(s)." + AnsiColour.RESET.getCode());
+                            // Call invitePlayers method to invite remaining players
                             gameLogic.invitePlayers(remainingSpots);
                         } else {
-                            System.out.println("Cannot add any new players. The loaded game already has the maximum of 7 players.");
+                            System.out.println(AnsiColour.RED.getCode() + "Cannot add any new players. The loaded game already has the maximum of 7 players." + AnsiColour.RESET.getCode());
                         }
 
-                        // Start the game after adding players
-                        gameLogic.startGame(); // Start the game with the loaded configuration
+                        // Set flag to indicate game was loaded
+                        isGameLoaded = true;
+
+                        // Start the game with loaded configuration
+                        gameLogic.startGame(isGameLoaded); // Pass flag to skip player invites if game is loaded
                     } else {
-                        System.out.println("Could not load the game. Please start a new game.");
+                        System.out.println(AnsiColour.RED.getCode() + "Could not load the game. Please start a new game." + AnsiColour.RESET.getCode());
                     }
                     break;
 
@@ -53,15 +59,15 @@ public class Main {
                     if (gameLogic != null) {
                         gameLogic.saveGame("blackjack_save.dat");
                     } else {
-                        System.out.println("No game in progress to save.");
+                        System.out.println(AnsiColour.RED.getCode() + "No game in progress to save." + AnsiColour.RESET.getCode());
                     }
                     break;
                 case 4: // Exit
                     exit = true;
-                    System.out.println("Exiting the game.");
+                    System.out.println(AnsiColour.MAGENTA.getCode() + "Exiting the game." + AnsiColour.RESET.getCode());
                     break;
                 default:
-                    System.out.println("Invalid choice. Please try again.");
+                    System.out.println(AnsiColour.RED.getCode() + "Invalid choice. Please try again." + AnsiColour.RESET.getCode());
             }
         }
         scanner.close();
@@ -72,18 +78,18 @@ public class Main {
         int choice = -1;
         while (true) {
             try {
-                System.out.print("Please enter a choice (1-4): ");
+                System.out.print(AnsiColour.MAGENTA.getCode() + "Please enter a choice (1-4): " + AnsiColour.RESET.getCode());
                 choice = scanner.nextInt();
 
                 // Check if the choice is within the valid range
                 if (choice >= 1 && choice <= 4) {
                     return choice;
                 } else {
-                    System.out.println("Invalid choice. Please enter a number between 1 and 4.");
+                    System.out.println(AnsiColour.RED.getCode() + "Invalid choice. Please enter a number between 1 and 4." + AnsiColour.RESET.getCode());
                 }
             } catch (InputMismatchException e) {
                 // Handle non-integer input
-                System.out.println("Invalid input. Please enter a number.");
+                System.out.println(AnsiColour.RED.getCode() + "Invalid input. Please enter a number." + AnsiColour.RESET.getCode());
                 scanner.next(); // Clear the invalid input from the scanner
             }
         }
